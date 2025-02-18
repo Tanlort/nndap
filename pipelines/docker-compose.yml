@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  pipelines:
+    build:
+      dockerfile: pipelines_ingrid.Dockerfile
+    volumes:
+      - ./src:/workspace
+      - infra_airflow:/workspace/airflow
+    environment:
+      - PYTHONPATH=/workspace
+    networks:
+      - infra_default
+
+volumes:
+  infra_airflow:
+    external: true 
+
+networks:
+  infra_default:
+    external: true
