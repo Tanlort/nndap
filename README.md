@@ -25,7 +25,7 @@ This will start **MySQL, Kafka, Zookeeper, Airflow**, and their respective UIs.
 Create an Airflow user:
 
 ```bash
-'docker exec -it airflow airflow users create -e admin@gmail.com -f Admin -l User -p secret -r Admin -u root'
+docker exec -it airflow airflow users create -e admin@gmail.com -f Admin -l User -p secret -r Admin -u root
 ```
 
 #### Credentials & UI Access:
