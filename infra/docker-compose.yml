@@ -1,0 +1,82 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    hostname: zookeeper_ingrid
+    container_name: zookeeper_ingrid
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 2181:2181
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    hostname: kafka_ingrid
+    container_name: kafka_ingrid 
+    restart: always 
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+      - 9092:9092
+      - 9101:9101
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  mysql:  
+    image: mysql
+    restart: always
+    container_name: mysql_ingrid
+    environment:
+      - MYSQL_ROOT_PASSWORD=${SQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql-init:/docker-entrypoint-initdb.d
+      - mysql_data:/var/lib/mysql
+  airflow:
+    build: 
+      context: ./custom
+      dockerfile: airflow.Dockerfile
+    container_name: airflow
+    restart: always
+    command: standalone
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor 
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=mysql+pymysql://${AIRFLOW_USER}:${AIRFLOW_PASSWORD}@mysql_ingrid/${AIRFLOW_DATABASE}
+      - AIRFLOW__WEBSERVER__SECRET_KEY=${AIRFLOW__WEBSERVER__SECRET_KEY}
+      - AIRFLOW__WEBSERVER__WORKERS=4
+      - AIRFLOW__SCHEDULER__RUN_AS_USER=airflow
+    ports:
+      - "8082:8080"
+    volumes:
+      - airflow:/opt/airflow
+    depends_on:
+      - mysql
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui_ingrid
+    ports:
+      - "8080:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+    depends_on:
+      - kafka
+      - zookeeper
+  adminer:
+    image: adminer
+    container_name: adminer_ingrid
+    ports:
+      - "8081:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=mysql
+    depends_on:
+      - mysql
+volumes:
+  mysql_data:
+  airflow:
