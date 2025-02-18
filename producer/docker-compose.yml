@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  producer:
+    container_name: producer_ingrid
+    build:
+      dockerfile: producer_ingrid.Dockerfile
+    volumes:
+      - .:/workspace
+    ports:
+      - "5001:5001" 
+    environment:
+      - PYTHONPATH=/workspace
+    networks:
+      - infra_default
+
+networks:
+  infra_default:
+    external: true
