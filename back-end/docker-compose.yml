@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  backend:
+    container_name: backend_ingrid
+    build:
+      dockerfile: backend_ingrid.Dockerfile
+    volumes:
+      - .:/workspace
+    ports:
+      - "5000:5000" 
+    environment:
+      - PYTHONPATH=/workspace
+    networks:
+      - infra_default
+
+networks:
+  infra_default:
+    external: true
